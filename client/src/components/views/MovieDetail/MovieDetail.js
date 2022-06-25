@@ -49,10 +49,9 @@ function MovieDetail(props) {
         {/** body */}
         <div stype={{width: '85%', margin: '1rem auto'}}>
             
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  <Favorite movieInfo={Movie} movieId={movieId} userFrom={localStorage.getItem('userId')} />
-              </div>
-
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Favorite movieInfo={Movie} movieId={movieId} userFrom={localStorage.getItem('userId')} />
+            </div>
 
             <MovieInfo 
                 movie = {Movie}
