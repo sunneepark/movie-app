@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Typography, Button, Form, message, Input, Icon } from 'antd';
 import DropZone from 'react-dropzone';
 import Axios from 'axios';
-import res from 'express/lib/response';
+import { useSelector } from 'react-redux';
 
 const { TextArea } = Input;
 const { Title } = Typography;
@@ -17,11 +17,12 @@ const CategoryOptions = [
     { value: 2, label: "Music" },
     { value: 3, label: "Pets & Animals" }
 ]
-function VideoUploadPage() {
-
+function VideoUploadPage(props) {
+    const user = useSelector(state => state.user);
     const [VideoTitle, setVideoTitle] = useState("")
     const [Description, setDescription] = useState("")
     const [Private, setPrivate] = useState(0) //private:1, public:0
+    const [FilePath, setFilePath] = useState("")
     const [Category, setCategory] = useState("Film & Animation")
     const [Duration, setDuration] = useState("")
     const [ThumbnailPath, setThumbnailPath] = useState("")
@@ -38,6 +39,33 @@ function VideoUploadPage() {
     const onCategoryChange = (e) => {
         setCategory(e.currentTarget.value)
     }
+    const onSubmit = (e) => {
+        e.preventDefault();
+
+        const variables = {
+            writer: user.userData._id,
+            title: VideoTitle,
+            description: Description,
+            privacy: Private,
+            filePath: FilePath,
+            category: Category,
+            duration: Duration,
+            thumbnail: ThumbnailPath
+        }
+        Axios.post('/api/video/uploadVideo', variables)
+            .then(response => {
+                if (response.data.success) {
+                    message.success("성공적으로 업로드를 했습니다")
+                    setTimeout(() => {
+                        
+                    }, 2000);
+                    props.history.push('/')
+                } else {
+                    alert("비디오 업로드에 실패했습니다")
+                }
+            })
+        
+    }
     const onDrop = (files) => {
         let formData = new FormData;
         const config = { //파일을 보내기 위한 
@@ -49,9 +77,11 @@ function VideoUploadPage() {
             .then(response => {
                 if (response.data.success) {
                     let variable = {
-                        url: response.data.url,
+                        filePath: response.data.filePath,
                         fileName: response.data.fileName
                     }
+                    setFilePath(response.data.filePath)
+
                     Axios.post('/api/video/thumbnail', variable)
                         .then(response => {
                             if (response.data.success) {
@@ -73,7 +103,7 @@ function VideoUploadPage() {
                 <Title level={2}>Upload Video</Title>      
           </div>
           
-          <Form onSubmit>
+          <Form onSubmit={onSubmit}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <DropZone
                     onDrop={onDrop}
@@ -128,7 +158,7 @@ function VideoUploadPage() {
               </select>
               <br />
               <br />
-              <Button type="primary" size="large" onClick>
+              <Button type="primary" size="large" onClick={onSubmit}>
                   Submit
               </Button>
           </Form>

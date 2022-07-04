@@ -6,12 +6,15 @@ import moment from 'moment';
 const { Title } = Typography;
 const { Meta } = Card;
 
-function LandingPage() {
-
+function SubscriptionPage() {
     const [Videos, setVideos] = useState([])
 
     useEffect(() => { //dom이 load 되면 동작하는 부분
-        axios.get('/api/video/getVideos')
+        const subscriptionVariable = {
+            userFrom : localStorage.getItem('userId')
+        }
+
+        axios.post('/api/video/getSubscriptionVideos', subscriptionVariable)
             .then(response => {
                 if (response.data.success) {
                     setVideos(response.data.videos)
@@ -68,5 +71,4 @@ function LandingPage() {
     )
 }
 
-export default LandingPage
-
+export default SubscriptionPage

@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 
-//const { Video } = require("../models/Video");
+const { Video } = require("../models/Video");
 const { auth } = require("../middleware/auth");
 const multer = require("multer");
-var ffmpeg = require("fluent-ffmpeg")
+var ffmpeg = require("fluent-ffmpeg");
+const { Subscriber } = require('../models/Subscriber');
 
 var storage = multer.diskStorage({
     destination: (req, file, cb) => { //파일을 저장하는 곳
@@ -30,9 +31,9 @@ router.post('/uploadfiles', (req, res) => {
     //비디오를 서버에 저장한다.
     upload(req, res, err => {
         if (err) {
-            return res.json({sucess:false, err})
+            return res.json({success:false, err})
         }
-        return res.json({sucess:true, url: res.req.file.path, fileName: res.req.file.filename})
+        return res.json({ success: true, filePath: res.req.file.path, fileName: res.req.file.filename})
     })
 })
 
@@ -44,8 +45,6 @@ router.post('/thumbnail', (req, res) => {
     //비디오 정보 가져오기
     ffmpeg.ffprobe(req.body.filePath, function (err, metadata) {
         console.dir(metadata); //all metadata
-        console.log(metadata.format.duration);
-
         fileDuration = metadata.format.duration;
     })
 
@@ -71,6 +70,59 @@ router.post('/thumbnail', (req, res) => {
             filename: 'thumbnail-%b.png'
         });
 
+})
+
+router.post('/uploadVideo', (req, res) => {
+
+    //업로드한 정보를 db에 저장
+    const video = new Video(req.body)
+    video.save((err, doc) => {
+        if (err) return res.json({ success: false, err })
+        res.status(200).json({ success:true })
+    })
+})
+
+router.get('/getVideos', (req, res) => {
+    Video.find()
+        .populate('writer') //모든 User 정보를 가져올 수 있음. 만약 writer만 가져오면 objectid 만 가져오게됨
+        .exec((err, videos) => {
+            if (err) return res.status(400).send(err);
+            res.status(200).json({ success: true, videos })
+        })
+})
+
+router.post('/getVideoDetail', (req, res) => {
+    Video.findOne({ "_id": req.body.videoId })
+        .populate('writer') //모든 User 정보를 가져올 수 있음. 만약 writer만 가져오면 objectid 만 가져오게됨
+        .exec((err, videoDetail) => {
+            if (err) return res.status(400).send(err);
+            res.status(200).json({ success: true, videoDetail })
+        })
+})
+
+router.post('/getSubscriptionVideos', (req, res) => {
+    
+    //1. 구독하는 사람들을 찾는다.
+    Subscriber.find({ userFrom: req.body.userFrom })
+        .exec((err, subscriberInfo) => {
+            if (err) return res.status(400).send(err);
+
+            let subscribedUser = [];
+            subscriberInfo.map((subscriber, i) => {
+                subscribedUser.push(subscriber.userTo);
+            })
+
+            //2. 찾은 사람들의 비디오를 가지고 온다
+            Video.find({ writer: { $in: subscribedUser} })
+                .populate('writer') //모든 User 정보를 가져올 수 있음. 만약 writer만 가져오면 objectid 만 가져오게됨
+                .exec((err, videos) => {
+                    if (err) return res.status(400).send(err);
+                    return res.status(200).json({ success: true, videos })
+                })
+            
+        })
+    
+    
 })
 
 module.exports = router;

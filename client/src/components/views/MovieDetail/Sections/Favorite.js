@@ -10,10 +10,6 @@ function Favorite(props) {
     const moviePost = props.movieInfo.backdrop_path
     const movieRunTime = props.movieInfo.runtime
 
-<<<<<<< HEAD
-=======
-
->>>>>>> b00300aabde12d462a777eedffe6cd946f1bc577
     const [FavoriteNumber, setFavoriteNumber] = useState(0)
     const [Favorited, setFavorited] = useState(false)
     let variables = {
@@ -66,11 +62,6 @@ function Favorite(props) {
                         alert('Favorite 리스트에서 지우는 걸 실패했습니다.')
                     }
                 })
-<<<<<<< HEAD
-=======
-
-
->>>>>>> b00300aabde12d462a777eedffe6cd946f1bc577
         } else {
             Axios.post('/api/favorite/addToFavorite', variables)
                 .then(response => {
@@ -83,22 +74,11 @@ function Favorite(props) {
                     }
                 })
         }
-<<<<<<< HEAD
-
-    }
-
-
-    return (
-        <div>
-            <Button onClick={onClickFavorite}>{Favorited ? " Not Favorite" : "Add to Favorite "}  {FavoriteNumber}  </Button>
-
-=======
     }
  
     return (
         <div>
             <Button onClick={onClickFavorite}>{Favorited ? "Not Favortie" : "Add to Favorite"} {FavoriteNumber} </Button>
->>>>>>> b00300aabde12d462a777eedffe6cd946f1bc577
         </div>
     )
 }
