@@ -2,7 +2,9 @@ import React, { useState } from 'react'
 import { Button, Input } from 'antd';
 import Axios from 'axios';
 import { useSelector } from 'react-redux';
-    
+import SingleComment from './SingleComment';
+import ReplyComment from './ReplyComment';
+
 const { TextArea } = Input;
 
 function Comment(props) {
@@ -27,12 +29,13 @@ function Comment(props) {
             .then(response => {
                 if (response.data.success) {
                     setcommentValue("")
-                    console.log(response.data.result)
+                    props.refreshFunction(response.data.result)
                 } else {
                     alert("comment can't save")
                 }
         })
     }
+  
 
   return (
       <div>
@@ -41,7 +44,16 @@ function Comment(props) {
           <hr />
 
           {/** Comment Lists */}
+          {props.commentLists && props.commentLists.map((comment, index) => (
+                (!comment.responseTo &&
+                  <React.Fragment>
+                    <SingleComment refreshFunction={props.refreshFunction} comment={comment} postId={props.postId} />
+                    <ReplyComment parentCommentId={comment._id} postId={ props.postId } CommentLists={props.commentLists} />
+                  </React.Fragment>
+                )
+          ))}
           
+
           {/* Root Comment Form */}
           <form style={{ display: 'flex' }} onSubmit={onSubmit}>
               <TextArea
